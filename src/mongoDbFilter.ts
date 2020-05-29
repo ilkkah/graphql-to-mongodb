@@ -1,4 +1,4 @@
-import { isType, GraphQLObjectType, isLeafType, GraphQLLeafType } from 'graphql';
+import { isType, GraphQLObjectType, isLeafType, GraphQLLeafType, GraphQLUnionType } from 'graphql';
 import { getTypeFields, getInnerType, isListField, addPrefixToProperties, GraphQLFieldsType } from './common';
 import { warn, logOnError } from './logger';
 
@@ -17,7 +17,7 @@ export type GraphQLFilter = {
 };
 
 type GraphQLObjectFilter = {
-    [key: string]: GraphQLObjectFilter | GraphQLLeafFilter | ('exists' | 'not_exists');
+    [key: string]: GraphQLObjectFilter | GraphQLLeafFilter | ('exists' | 'not_exists') | any[];
     opr?: 'exists' | 'not_exists';
 };
 
@@ -27,7 +27,7 @@ type GraphQLLeafFilterInner = {
 
 type GraphQLLeafFilter = GraphQLLeafFilterInner & {
     NOT?: GraphQLLeafFilterInner;
-    opr?: MongoDbLeafOperators;
+    opr?: 'exists' | 'not_exists';
     value?: any;
     values?: any[];
 };
@@ -86,7 +86,15 @@ export const getMongoDbFilter = logOnError((graphQLType: GraphQLFieldsType, grap
 });
 
 function parseMongoDbFilter(type: GraphQLFieldsType, graphQLFilter: GraphQLObjectFilter, ...excludedFields: string[]): MongoDbObjectFilter {
-    const typeFields = getTypeFields(type)();
+    var typeFields = {}
+    if (type instanceof GraphQLUnionType) {
+        var types = type.getTypes();
+        types.forEach(function(t) {
+            Object.assign(typeFields, getTypeFields(t)())
+        })
+    } else {
+        typeFields = getTypeFields(type)();
+    }
 
     return Object.keys(graphQLFilter)
         .filter(key => !excludedFields.includes(key))
@@ -102,6 +110,7 @@ function parseMongoDbFilter(type: GraphQLFieldsType, graphQLFilter: GraphQLObjec
                 const leafFilter = parseMongoDbLeafFilter(fieldFilter as GraphQLLeafFilter);
 
                 if (Object.keys(leafFilter).length > 0) {
+                    if (key === 'id') key = '_id'
                     return { ...agg, [key]: leafFilter };
                 }
             } else {
@@ -134,12 +143,10 @@ function parseMongoDbLeafFilter(graphQLLeafFilter: GraphQLLeafFilter, not: boole
     Object.keys(graphQLLeafFilter)
         .filter((key: keyof GraphQLLeafFilter) => key !== 'value' && key !== 'values' && key !== 'OPTIONS')
         .forEach((key: keyof GraphQLLeafFilter) => {
-            ////////////// DEPRECATED /////////////////////////////////////////
             if (key === 'opr') {
-                Object.assign(mongoDbScalarFilter, parseMongoDbScalarFilterOpr(graphQLLeafFilter[key], graphQLLeafFilter));
+                Object.assign(mongoDbScalarFilter, parseMongoExistsFilter(graphQLLeafFilter[key]));
                 return;
             }
-            ///////////////////////////////////////////////////////////////////
             if (key === 'NOT') {
                 mongoDbScalarFilter[operatorsMongoDbKeys[key]] = parseMongoDbLeafNoteFilter(graphQLLeafFilter[key]);
                 return;
@@ -174,25 +181,3 @@ function parseMongoDbLeafNoteFilter(graphQLLeafFilterInner: GraphQLLeafFilterInn
 
     return new RegExp(graphQLLeafFilterInner.REGEX, `g${graphQLLeafFilterInner.OPTIONS || ''}`);
 }
-
-////////////// DEPRECATED ///////////////////////////////////////////
-let dperecatedMessageSent = false;
-
-function parseMongoDbScalarFilterOpr(opr: MongoDbLeafOperators, graphQLFilter: GraphQLLeafFilter): {} {
-    if (!dperecatedMessageSent) {
-        warn('scalar filter "opr" field is deprecated, please switch to the operator fields');
-        dperecatedMessageSent = true;
-    }
-
-    if (["$in", "$nin", "$all"].includes(opr)) {
-        if (graphQLFilter['values']) {
-            return { [opr]: graphQLFilter['values'] };
-        }
-    }
-    else if (graphQLFilter['value'] !== undefined) {
-        return { [opr]: graphQLFilter['value'] };
-    }
-
-    return {};
-}
-/////////////////////////////////////////////////////////////////////

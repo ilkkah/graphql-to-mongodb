@@ -1,25 +1,8 @@
-import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, GraphQLScalarType, GraphQLObjectType, GraphQLInputFieldConfigMap, GraphQLInputType, GraphQLString, isLeafType, GraphQLLeafType, GraphQLInterfaceType } from 'graphql';
+import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, GraphQLScalarType, GraphQLObjectType, GraphQLInputFieldConfigMap, GraphQLInputType, GraphQLString, isLeafType, GraphQLLeafType, GraphQLInterfaceType, GraphQLUnionType } from 'graphql';
 import { cache, setSuffix, getUnresolvedFieldsTypes, getTypeFields, FieldMap, typesCache, GraphQLFieldsType } from './common';
 import { warn } from './logger';
 
 const warnedIndependentResolvers = {};
-
-////////////// DEPRECATED ///////////////////////////////////////////
-const GetOprType = () => cache(typesCache, "Opr", () => new GraphQLEnumType({
-    name: 'Opr',
-    values: {
-        EQL: { value: "$eq" },
-        GT: { value: "$gt" },
-        GTE: { value: "$gte" },
-        IN: { value: "$in" },
-        ALL: { value: "$all" },
-        LT: { value: "$lt" },
-        LTE: { value: "$lte" },
-        NE: { value: "$ne" },
-        NIN: { value: "$nin" }
-    }
-}));
-/////////////////////////////////////////////////////////////////////
 
 const GetOprExistsType = () => cache(typesCache, "OprExists", () => new GraphQLEnumType({
     name: 'OprExists',
@@ -57,6 +40,19 @@ function getGraphQLObjectFilterType(
     ...excludedFields: string[]): GraphQLInputType {
     if (isLeafType(type)) {
         return getGraphQLLeafFilterType(type);
+    }
+
+    if (type instanceof GraphQLUnionType) {
+        var types = type.getTypes();
+        var fields = {};
+        types.forEach(function(t) {
+            Object.assign(fields, getInputObjectTypeFields(t, ...excludedFields)())
+        })
+        const unionTypeName = setSuffix(type.name, 'Type', 'ObjectFilterType');
+        return cache(typesCache, unionTypeName, () => new GraphQLInputObjectType({
+            name: unionTypeName,
+            fields: () => fields
+        }));
     }
 
     if (type instanceof GraphQLNonNull) {
@@ -106,19 +102,15 @@ function getGraphQLScalarFilterTypeFields(scalarType: GraphQLLeafType, not: bool
         LT: { type: scalarType, description: '$lt' },
         LTE: { type: scalarType, description: '$lte' },
         NE: { type: scalarType, description: '$ne' },
-        NIN: { type: new GraphQLList(scalarType), description: '$nin' }
+        NIN: { type: new GraphQLList(scalarType), description: '$nin' },
+        opr: { type: GetOprExistsType() }
     };
 
-    if (scalarType.name === 'String') enhanceWithRegexFields(fields);
-
-    if (!not) { 
-        enhanceWithNotField(fields, scalarType);
-
-        fields['opr'] = { type: GetOprType(), description: 'DEPRECATED: Switched to the more intuitive operator fields' };
-        fields['value'] = { type: scalarType, description: 'DEPRECATED: Switched to the more intuitive operator fields' };
-        fields['values'] = { type: new GraphQLList(scalarType), description: 'DEPRECATED: Switched to the more intuitive operator fields' };
-        fields['NEQ'] = { type: scalarType, description: 'DEPRECATED: use NE' };
+    if (scalarType.name === 'String') {
+        enhanceWithRegexFields(fields);
     }
+
+    if (!not) enhanceWithNotField(fields, scalarType);
 
     return fields;
 }

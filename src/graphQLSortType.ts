@@ -1,4 +1,4 @@
-import { GraphQLInputObjectType, GraphQLEnumType, GraphQLNonNull, GraphQLObjectType, GraphQLInputType, GraphQLType, isLeafType, GraphQLInterfaceType } from 'graphql';
+import { GraphQLInputObjectType, GraphQLEnumType, GraphQLNonNull, GraphQLObjectType, GraphQLInputType, GraphQLType, isLeafType, GraphQLInterfaceType, GraphQLUnionType } from 'graphql';
 import { cache, setSuffix, getUnresolvedFieldsTypes, typesCache, FieldMap, GraphQLFieldsType } from './common';
 
 export const FICTIVE_SORT = "_FICTIVE_SORT";
@@ -7,6 +7,19 @@ export const FICTIVE_SORT_DESCRIPTION = "IGNORE. Due to limitations of the packa
 function getGraphQLSortTypeObject(type: GraphQLType, ...excludedFields): GraphQLInputType {
     if (isLeafType(type)) {
         return GraphQLSortType;
+    }
+
+    if (type instanceof GraphQLUnionType) {
+        var types = type.getTypes();
+        var fields = {};
+        types.forEach(function(t) {
+            Object.assign(fields, getGraphQLSortTypeFields(t, ...excludedFields)())
+        })
+        const unionSortTypeName = setSuffix(type.name, 'Type', 'SortType');
+        return cache(typesCache, unionSortTypeName, () => new GraphQLInputObjectType({
+            name: unionSortTypeName,
+            fields: () => fields
+        }));
     }
 
     if (type instanceof GraphQLNonNull) {
