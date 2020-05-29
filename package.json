@@ -7,8 +7,7 @@
   "scripts": {
     "build": "tsc -p .",
     "publish-now": "npm run build && npm publish",
-    "test": "ts-mocha tests/**/*.spec.ts",
-    "postinstall": "npm run build"
+    "test": "ts-mocha tests/**/*.spec.ts"
   },
   "repository": {
     "type": "git",
