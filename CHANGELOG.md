@@ -1,4 +1,6 @@
 # Change Log
+##### 1.6.5-fork
+- Fixed for rudementary Union support
 ##### 1.6.5
 - Allow override of the is-resolved-field logic in projection and update validation
 ##### 1.6.4
