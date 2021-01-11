@@ -117,7 +117,7 @@ function parseMongoDbFilter(type: GraphQLFieldsType, graphQLFilter: GraphQLObjec
                 const nestedFilter = parseMongoDbFilter(fieldType, fieldFilter, ...excludedFields);
 
                 if (Object.keys(nestedFilter).length > 0) {
-                    if (isListField(typeFields[key].type)) {
+                    if (isListField(typeFields[key].type) && Object.keys(nestedFilter).length > 1) {
                         return { ...agg, [key]: { '$elemMatch': nestedFilter } };
                     } else {
                         const { $exists, ...nestedObjectFilter } = nestedFilter;

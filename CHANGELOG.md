@@ -1,4 +1,6 @@
 # Change Log
+##### 1.6.6-fork
+- Fixed elemMatch with one argument
 ##### 1.6.5-fork
 - Fixed for rudementary Union support
 ##### 1.6.5
