@@ -1,4 +1,4 @@
-import { GraphQLList, GraphQLType, GraphQLObjectType, GraphQLNonNull, GraphQLArgument, GraphQLFieldResolver, FieldDefinitionNode, GraphQLNamedType, GraphQLInterfaceType } from 'graphql'
+import { GraphQLList, GraphQLType, GraphQLObjectType, GraphQLNonNull, GraphQLArgument, GraphQLFieldResolver, FieldDefinitionNode, InputValueDefinitionNode, GraphQLNamedType, GraphQLInterfaceType,StringValueNode,NameNode,TypeNode,DirectiveNode,ValueNode } from 'graphql'
 
 export interface cacheCallback<T> {
     (key): T
@@ -29,7 +29,7 @@ export function setSuffix(text: string, locate: string, replaceWith: string): st
         : `${text}${replaceWith}`;
 }
 
-export interface FieldExtensions {
+export type FieldExtensions = {
     graphqlToMongoDb?: { dependencies: string[] }
 }
 
@@ -45,6 +45,17 @@ export interface FieldMap<T extends GraphQLType> {
     [key: string]: Field<T, any, any> & { type: T }
 }
 
+export interface AstNodeType {
+    readonly kind: any;
+    readonly loc?: any;
+    readonly description?: StringValueNode;
+    readonly name: NameNode;
+    readonly arguments?: ReadonlyArray<InputValueDefinitionNode>;
+    readonly type: TypeNode;
+    readonly directives?: ReadonlyArray<DirectiveNode>;
+    readonly defaultValue?: ValueNode;
+}
+
 export interface Field<TType extends GraphQLType,
     TSource,
     TContext,
@@ -53,12 +64,12 @@ export interface Field<TType extends GraphQLType,
     name?: string;
     description?: string;
     type: TType;
-    args?: GraphQLArgument[];
+    args?: readonly GraphQLArgument[];
     resolve?: GraphQLFieldResolver<TSource, TContext, TArgs>;
     subscribe?: GraphQLFieldResolver<TSource, TContext, TArgs>;
     isDeprecated?: boolean;
     deprecationReason?: string;
-    astNode?: FieldDefinitionNode;
+    astNode?: AstNodeType;
     extensions?: FieldExtensions
 }
 

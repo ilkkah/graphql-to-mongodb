@@ -45,7 +45,7 @@ function getSelectedProjection(
 
             if (options.isResolvedField(field)) {
                 let dependencies: string[] = []
-                if (field.extensions.graphqlToMongoDb) {
+                if (field.extensions.graphqlToMongoDb && field.extensions.graphqlToMongoDb.dependencies) {
                     dependencies = field.extensions.graphqlToMongoDb.dependencies;
                 }
                 const dependenciesProjection = dependencies.reduce((agg, dependency) => ({ ...agg, [dependency]: 1 }), {});
