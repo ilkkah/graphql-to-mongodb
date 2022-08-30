@@ -1,4 +1,6 @@
 # Change Log
+##### 1.7.0-fork
+- Support for graphql 15 and above and the extension property
 ##### 1.6.6-fork
 - Fixed elemMatch with one argument
 ##### 1.6.5-fork

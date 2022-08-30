@@ -29,8 +29,12 @@ export function setSuffix(text: string, locate: string, replaceWith: string): st
         : `${text}${replaceWith}`;
 }
 
+export interface FieldExtensions {
+    graphqlToMongoDb?: { dependencies: string[] }
+}
+
 export interface FieldFilter {
-    (name: string, field: { resolve?: Function, dependencies?: string[] }): Boolean
+    (name: string, field: { resolve?: Function, extensions?: FieldExtensions }): Boolean
 }
 
 export interface TypeResolver<T extends GraphQLType> {
@@ -55,7 +59,7 @@ export interface Field<TType extends GraphQLType,
     isDeprecated?: boolean;
     deprecationReason?: string;
     astNode?: FieldDefinitionNode;
-    dependencies?: string[]
+    extensions?: FieldExtensions
 }
 
 export type GraphQLFieldsType = GraphQLObjectType | GraphQLInterfaceType;

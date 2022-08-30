@@ -66,12 +66,24 @@ people: {
 ```
 You'll notice that integrating the package takes little more than adding some fancy middleware over the resolve function.  The `filter, projection, options` added as the first paraneters of the callback, can be sent directly to the MongoDB find function as shown. The rest of the parameter are the standard recieved from the GraphQL api. 
 
-* Additionally, resolve fields' dependencies should be defined in the GraphQL type like so:
+* Additionally, resolve fields' dependencies should be defined in the GraphQL type like so for version 1.6.6 and below and graphql version 14 and below:
     ```js 
     fullName: {
         type: GraphQLString,
         resolve: (obj, args, { db }) => `${obj.name.first} ${obj.name.last}`,
         dependencies: ['name'] // or ['name.first', 'name.Last'], whatever tickles your fancy
+    }
+    ```
+    and like so for version 1.7.0 and above and graphql 15 and above:
+    ```js 
+    fullName: {
+        type: GraphQLString,
+        resolve: (obj, args, { db }) => `${obj.name.first} ${obj.name.last}`,
+        extensions: {
+            graphqlToMongoDb: {
+                dependencies: ['name'] // or ['name.first', 'name.Last'], whatever tickles your fancy
+            }
+        }
     }
     ```
     This is needed to ensure that the projection does not omit any neccessary fields. Alternatively, if throughput is of no concern, the projection can be replaced with an empty object.

@@ -127,11 +127,11 @@ function enhanceWithNotField(fields: GraphQLInputFieldConfigMap, scalarType: Gra
 function warnOfIndependentResolveFields(type: GraphQLFieldsType): void {
     cache(warnedIndependentResolvers, type.toString(), () => {
         const fields =
-            getTypeFields(type, (key, field) =>
-                field.resolve && !Array.isArray(field.dependencies))();
+            getTypeFields(type, (key, field) => 
+                field.resolve && (field.extensions.graphqlToMongoDb ? !Array.isArray(field.extensions.graphqlToMongoDb.dependencies) : true))();
 
         Object.keys(fields).forEach(key =>
-            warn(`Field ${key} of type ${type} has a resolve function and no dependencies`));
+            warn(`Field ${key} of type ${type} has a resolve function and no extensions.graphqlToMongoDb.dependencies`));
 
         return 1;
     });

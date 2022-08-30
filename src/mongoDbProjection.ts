@@ -1,4 +1,4 @@
-import { getInnerType, flatten, addPrefixToProperties, GraphQLFieldsType } from './common';
+import { getInnerType, flatten, addPrefixToProperties, GraphQLFieldsType, Field } from './common';
 import { isType, GraphQLResolveInfo, SelectionNode, FragmentSpreadNode, GraphQLField } from 'graphql';
 import { logOnError } from './logger';
 
@@ -44,7 +44,10 @@ function getSelectedProjection(
             const field = fields[node.name.value];
 
             if (options.isResolvedField(field)) {
-                const dependencies: string[] = field["dependencies"] || [];
+                let dependencies: string[] = []
+                if (field.extensions.graphqlToMongoDb) {
+                    dependencies = field.extensions.graphqlToMongoDb.dependencies;
+                }
                 const dependenciesProjection = dependencies.reduce((agg, dependency) => ({ ...agg, [dependency]: 1 }), {});
                 return {
                     ...projection,
