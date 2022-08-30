@@ -1,4 +1,4 @@
-import { GraphQLList, GraphQLType, GraphQLObjectType, GraphQLNonNull, GraphQLArgument, GraphQLFieldResolver, FieldDefinitionNode, InputValueDefinitionNode, GraphQLNamedType, GraphQLInterfaceType,StringValueNode,NameNode,TypeNode,DirectiveNode,ValueNode } from 'graphql'
+import { GraphQLList, GraphQLType, GraphQLObjectType, GraphQLNonNull, GraphQLArgument, GraphQLFieldResolver, GraphQLNamedType, GraphQLInterfaceType } from 'graphql'
 
 export interface cacheCallback<T> {
     (key): T
@@ -45,17 +45,6 @@ export interface FieldMap<T extends GraphQLType> {
     [key: string]: Field<T, any, any> & { type: T }
 }
 
-export interface AstNodeType {
-    readonly kind: any;
-    readonly loc?: any;
-    readonly description?: StringValueNode;
-    readonly name: NameNode;
-    readonly arguments?: ReadonlyArray<InputValueDefinitionNode>;
-    readonly type: TypeNode;
-    readonly directives?: ReadonlyArray<DirectiveNode>;
-    readonly defaultValue?: ValueNode;
-}
-
 export interface Field<TType extends GraphQLType,
     TSource,
     TContext,
@@ -69,7 +58,7 @@ export interface Field<TType extends GraphQLType,
     subscribe?: GraphQLFieldResolver<TSource, TContext, TArgs>;
     isDeprecated?: boolean;
     deprecationReason?: string;
-    astNode?: AstNodeType;
+    astNode?: any;
     extensions?: FieldExtensions
 }
 

@@ -1,4 +1,4 @@
-import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, GraphQLScalarType, GraphQLInt, GraphQLObjectType, GraphQLInputFieldConfigMap, GraphQLInputType, Thunk, GraphQLBoolean } from 'graphql';
+import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, GraphQLScalarType, GraphQLInt, GraphQLObjectType, GraphQLInputFieldConfig, GraphQLInputFieldConfigMap, GraphQLInputType, ThunkObjMap, GraphQLBoolean } from 'graphql';
 import { cache, setSuffix, getUnresolvedFieldsTypes, typesCache } from './common';
 
 export const OVERWRITE = "_OVERWRITE";
@@ -84,7 +84,7 @@ function getGraphQLSetObjectType(
     }));
 }
 
-function getGraphQLSetObjectTypeFields(type: GraphQLObjectType, isInList: boolean, ...excludedFields: string[]): Thunk<GraphQLInputFieldConfigMap> {
+function getGraphQLSetObjectTypeFields(type: GraphQLObjectType, isInList: boolean, ...excludedFields: string[]): ThunkObjMap<GraphQLInputFieldConfig> {
     return () => {
         const fields = getUnresolvedFieldsTypes(type, (_, ...excluded) => getGraphQLSetObjectType(_ as any, isInList, ...excluded), ...excludedFields)();
 

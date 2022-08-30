@@ -1,4 +1,4 @@
-import { GraphQLType, GraphQLObjectType, GraphQLArgument, GraphQLFieldResolver, FieldDefinitionNode, GraphQLNamedType, GraphQLInterfaceType } from 'graphql';
+import { GraphQLType, GraphQLObjectType, GraphQLArgument, GraphQLFieldResolver, GraphQLNamedType, GraphQLInterfaceType } from 'graphql';
 export interface cacheCallback<T> {
     (key: any): T;
 }
@@ -11,10 +11,15 @@ export declare const getTypesCache: () => {
 export declare function clearTypesCache(): void;
 export declare function cache<T>(cacheObj: object, key: any, callback: cacheCallback<T>): T;
 export declare function setSuffix(text: string, locate: string, replaceWith: string): string;
+export declare type FieldExtensions = {
+    graphqlToMongoDb?: {
+        dependencies: string[];
+    };
+};
 export interface FieldFilter {
     (name: string, field: {
         resolve?: Function;
-        dependencies?: string[];
+        extensions?: FieldExtensions;
     }): Boolean;
 }
 export interface TypeResolver<T extends GraphQLType> {
@@ -31,13 +36,13 @@ export interface Field<TType extends GraphQLType, TSource, TContext, TArgs = {
     name?: string;
     description?: string;
     type: TType;
-    args?: GraphQLArgument[];
+    args?: readonly GraphQLArgument[];
     resolve?: GraphQLFieldResolver<TSource, TContext, TArgs>;
     subscribe?: GraphQLFieldResolver<TSource, TContext, TArgs>;
     isDeprecated?: boolean;
     deprecationReason?: string;
-    astNode?: FieldDefinitionNode;
-    dependencies?: string[];
+    astNode?: any;
+    extensions?: FieldExtensions;
 }
 export declare type GraphQLFieldsType = GraphQLObjectType | GraphQLInterfaceType;
 export declare function getTypeFields<T extends GraphQLType>(graphQLType: GraphQLFieldsType, filter?: FieldFilter, typeResolver?: TypeResolver<T>, ...excludedFields: string[]): () => FieldMap<T>;
