@@ -1,5 +1,5 @@
 {
-  "name": "@dla-vod/graphql-to-mongodb",
+  "name": "graphql-to-mongodb-ilkkah",
   "version": "1.7.0",
   "description": "Generic run-time generation of input filter types for existing graphql types, and parsing of said input types into MongoDB queries",
   "main": "lib/index.js",
